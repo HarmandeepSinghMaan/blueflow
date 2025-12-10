@@ -1,0 +1,30 @@
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Vite / build outputs
+dist/
+build/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Env and secrets
+.env
+backend/.env
+
+# Coverage / cache
+coverage/
+.cache/
+
+# Misc
+*.local
+
+# DB dumps or large artifacts
+backend/company_db.dump
