@@ -1,5 +1,6 @@
 import createError from 'http-errors'
 import { createCompany, getCompanyByOwner, updateCompanyByOwner } from '../models/companyModel.js'
+import { uploadImage } from '../services/cloudinaryService.js'
 
 export const registerCompany = async (req, res, next) => {
   try {
@@ -37,8 +38,13 @@ export const updateProfile = async (req, res, next) => {
 
 export const uploadLogo = async (req, res, next) => {
   try {
-    // Integrate Cloudinary and persist logo_url via updateCompanyByOwner when ready
-    return res.json({ success: true, message: 'Logo upload endpoint stubbed' })
+    const ownerId = req.user?.sub
+    if (!ownerId) return next(createError(401, 'Unauthorized'))
+    const { fileBase64 } = req.body || {}
+    if (!fileBase64) return next(createError(400, 'Missing file'))
+    const url = await uploadImage(fileBase64, 'company/logos')
+    await updateCompanyByOwner(ownerId, { logo_url: url })
+    return res.json({ success: true, message: 'Logo uploaded', data: { logo_url: url } })
   } catch (err) {
     next(createError(400, err.message))
   }
@@ -46,8 +52,13 @@ export const uploadLogo = async (req, res, next) => {
 
 export const uploadBanner = async (req, res, next) => {
   try {
-    // Integrate Cloudinary and persist banner_url via updateCompanyByOwner when ready
-    return res.json({ success: true, message: 'Banner upload endpoint stubbed' })
+    const ownerId = req.user?.sub
+    if (!ownerId) return next(createError(401, 'Unauthorized'))
+    const { fileBase64 } = req.body || {}
+    if (!fileBase64) return next(createError(400, 'Missing file'))
+    const url = await uploadImage(fileBase64, 'company/banners')
+    await updateCompanyByOwner(ownerId, { banner_url: url })
+    return res.json({ success: true, message: 'Banner uploaded', data: { banner_url: url } })
   } catch (err) {
     next(createError(400, err.message))
   }
