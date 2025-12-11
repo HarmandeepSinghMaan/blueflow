@@ -1,69 +1,117 @@
-import React, { useEffect, useState } from 'react'
-import { Container, Box, Typography, Button, Alert, Divider } from '@mui/material'
-import { useSelector, useDispatch } from 'react-redux'
-import { logout } from '../store/slices/authSlice'
-import { api, setAuthToken } from '../api/client'
+import React, { useState, useEffect } from "react";
+import { api, setAuthToken } from "../api/client";
+import { useSelector } from "react-redux";
+import "./dashboard.css"; // ← CSS moved here
 
 export default function Dashboard() {
-  const user = useSelector((state) => state.auth.user)
-  const token = useSelector((state) => state.auth.token)
-  const dispatch = useDispatch()
-  const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [errorMsg, setErrorMsg] = useState(null)
+  const token = useSelector((state) => state.auth.token);
+  const user = useSelector((state) => state.auth.user);
+
+  const [tab, setTab] = useState(0);
+  const [company, setCompany] = useState(null);
+  const [error, setError] = useState(null);
 
   const fetchProfile = async () => {
-    setLoading(true)
-    setErrorMsg(null)
     try {
-      const res = await api.get('/api/company/profile')
-      setProfile(res?.data?.data || null)
+      const res = await api.get("/api/company/profile");
+      setCompany(res?.data?.data || null);
     } catch (err) {
-      const status = err?.response?.status
-      if (status === 404) {
-        setProfile(null)
-      } else if (status === 401) {
-        setErrorMsg('Session expired. Please log in again.')
-      } else {
-        setErrorMsg(err?.response?.data?.message || 'Failed to load company profile')
-      }
-    } finally {
-      setLoading(false)
+      setError("Failed to load company profile");
     }
-  }
+  };
 
   useEffect(() => {
-    // Ensure auth header is set on mount and when token changes
-    setAuthToken(token)
-    fetchProfile()
-  }, [token])
+    setAuthToken(token);
+    fetchProfile();
+  }, [token]);
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 8 }}>
-        <Typography variant="h4" gutterBottom>Dashboard</Typography>
-        {errorMsg && <Alert severity="error" sx={{ mb: 2 }}>{errorMsg}</Alert>}
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-          <Typography variant="body1">Welcome{user?.email ? `, ${user.email}` : ''}.</Typography>
-          <Button variant="outlined" size="small" onClick={fetchProfile} disabled={loading}>
-            {loading ? 'Refreshing...' : 'Refresh Profile'}
-          </Button>
-          <Button variant="text" color="error" size="small" onClick={() => dispatch(logout())}>Logout</Button>
-        </Box>
-        <Divider sx={{ mb: 2 }} />
-        {profile ? (
-          <Box>
-            <Typography variant="h6" gutterBottom>Company Profile</Typography>
-            <Typography variant="body2">Company Name: {profile.company_name || '—'}</Typography>
-            <Typography variant="body2">City: {profile.city || '—'}</Typography>
-            <Typography variant="body2">State: {profile.state || '—'}</Typography>
-            <Typography variant="body2">Country: {profile.country || '—'}</Typography>
-            <Typography variant="body2">Industry: {profile.industry || '—'}</Typography>
-          </Box>
-        ) : (
-          <Alert severity="info">No company profile yet. Use Settings to create or update your profile.</Alert>
-        )}
-      </Box>
-    </Container>
-  )
+    <div className="dashboard-container">
+
+      {/* TOP HEADER */}
+      <div className="top-header">
+        <img src="/logo.jpg" alt="Logo" className="logo-img" />
+
+        <div className="progress-box">
+          <p className="progress-label">Setup Progress</p>
+          <p className="progress-value">0% Completed</p>
+        </div>
+      </div>
+
+      {/* TABS */}
+      <div className="tabs">
+        <button className={tab === 0 ? "tab active" : "tab"} onClick={() => setTab(0)}>Company Info</button>
+        <button className={tab === 1 ? "tab active" : "tab"} onClick={() => setTab(1)}>Founding Info</button>
+        <button className={tab === 2 ? "tab active" : "tab"} onClick={() => setTab(2)}>Social Media Profile</button>
+        <button className={tab === 3 ? "tab active" : "tab"} onClick={() => setTab(3)}>Contact</button>
+      </div>
+
+      {/* ERROR MESSAGE */}
+      {error && <div className="error-box">{error}</div>}
+
+      <p className="welcome-text">Welcome, {user?.email}</p>
+
+      {/* TAB CONTENTS */}
+
+      {/* COMPANY INFO */}
+      {tab === 0 && (
+        <div>
+          <h3>Logo & Banner Image</h3>
+
+          <div className="upload-row">
+            <div className="upload-box">
+              <p className="upload-title">Upload Logo</p>
+              <label className="upload-btn">
+                Browse Photo
+                <input type="file" hidden />
+              </label>
+              <p className="upload-note">A photo larger than 400px works best. Max size 5 MB.</p>
+            </div>
+
+            <div className="upload-box">
+              <p className="upload-title">Banner Image</p>
+              <label className="upload-btn">
+                Browse Photo
+                <input type="file" hidden />
+              </label>
+              <p className="upload-note">Optimal size 1520×400. JPG/PNG only. Max size 5 MB.</p>
+            </div>
+          </div>
+
+          <input className="input-field" placeholder="Company Name" />
+          <textarea className="textarea-field" placeholder="About Us"></textarea>
+        </div>
+      )}
+
+      {/* FOUNDING INFO */}
+      {tab === 1 && (
+        <div>
+          <h3>Founding Information</h3>
+          <input className="input-field" placeholder="Founded Year" />
+          <input className="input-field" placeholder="Founder Name" />
+          <input className="input-field" placeholder="Company Size" />
+        </div>
+      )}
+
+      {/* SOCIAL MEDIA */}
+      {tab === 2 && (
+        <div>
+          <h3>Social Media Profiles</h3>
+          <input className="input-field" placeholder="LinkedIn URL" />
+          <input className="input-field" placeholder="Twitter URL" />
+          <input className="input-field" placeholder="Website" />
+        </div>
+      )}
+
+      {/* CONTACT INFO */}
+      {tab === 3 && (
+        <div>
+          <h3>Contact Information</h3>
+          <input className="input-field" placeholder="Email" />
+          <input className="input-field" placeholder="Phone Number" />
+          <input className="input-field" placeholder="Address" />
+        </div>
+      )}
+    </div>
+  );
 }

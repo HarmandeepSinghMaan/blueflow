@@ -8,6 +8,8 @@ import createError from 'http-errors'
 import authRoutes from './routes/auth.js'
 import companyRoutes from './routes/company.js'
 import debugRoutes from './routes/debug.js'
+import { pool } from './services/db.js'
+
 
 dotenv.config()
 
@@ -34,6 +36,14 @@ app.use((err, req, res, next) => {
   res.status(status).json({ success: false, message: err.message || 'Server Error' })
 })
 
-app.listen(PORT, () => {
-  console.log(`API server listening on http://localhost:${PORT}`)
-})
+pool.connect()
+  .then(() => {
+    console.log('Connected to PostgreSQL');
+    app.listen(PORT, () => {
+      console.log(`API server listening on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Database connection failed:', err);
+    process.exit(1);
+  });
